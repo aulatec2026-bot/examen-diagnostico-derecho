@@ -10,27 +10,48 @@ h1{margin:0 0 7px;font-size:clamp(25px,4vw,39px)}header p{margin:0;opacity:.9}ma
 .sect{margin-top:26px;background:#eef2ff;border-left:6px solid var(--blue)}.sect h2{margin:0;font-size:21px}.n{font-size:12px;font-weight:900;color:var(--blue);text-transform:uppercase}
 .q h3{font-size:18px;line-height:1.42;margin:7px 0 12px}.opts{display:grid;gap:8px}.opt{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);padding:11px;border-radius:10px;cursor:pointer}.opt:hover{background:#f8fafc}.opt input{margin-top:4px}
 .actions{position:sticky;bottom:10px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:13px;padding:10px;display:flex;gap:10px;justify-content:center;backdrop-filter:blur(8px)}
-button{border:0;border-radius:9px;padding:12px 18px;font-weight:800;font-size:16px;cursor:pointer}.primary{background:var(--blue);color:white}.secondary{background:#e2e8f0}
+button{border:0;border-radius:9px;padding:12px 18px;font-weight:800;font-size:16px;cursor:pointer}.primary{background:var(--blue);color:white}.secondary{background:#e2e8f0}button:disabled{opacity:.6;cursor:not-allowed}
 #result{display:none}.score{font-size:46px;font-weight:900;color:var(--blue)}.badge{display:inline-block;background:#dcfce7;color:#166534;padding:6px 10px;border-radius:999px;font-weight:800}
-.break{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:14px}.break div{border:1px solid var(--line);border-radius:9px;padding:10px}.bad{border-color:#fecaca;background:#fff7f7}.good{border-color:#bbf7d0;background:#f7fff9}.small{color:var(--muted);font-size:14px}
+.break{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:14px}.break div{border:1px solid var(--line);border-radius:9px;padding:10px}.bad{border-color:#fecaca;background:#fff7f7}.good{border-color:#bbf7d0;background:#f7fff9}.small{color:var(--muted);font-size:14px}.sendstatus{margin-top:16px;padding:11px 13px;border-radius:9px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-weight:700}.sendstatus.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}.sendstatus.err{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
 @media print{.actions{display:none}body{background:#fff}.q{break-inside:avoid}}
 </style></head><body><header><div class="wrap"><h1>Examen Diagnóstico – Licenciatura en Derecho</h1><p>Acuerdo 286 · 50 reactivos · 1 punto por reactivo</p></div></header>
 <main class="wrap"><form id="quiz"><section class="box"><h2>Datos del participante</h2><div class="grid">
 <label class="field">Nombre completo<input id="name" type="text" required></label><label class="field">Plantel<input id="campus" type="text" required></label><label class="field">Fecha<input id="date" type="date" required></label>
-</div><p class="small">Selecciona una sola respuesta por reactivo. Al finalizar recibirás tu resultado global y por área.</p></section><div id="items"><section class="box">Cargando examen…</section></div>
-<div class="actions"><button class="primary" type="submit">Calificar examen</button><button class="secondary" type="button" onclick="window.print()">Imprimir</button></div></form>
-<section id="result" class="box"><h2>Resultado diagnóstico</h2><div id="student"></div><div class="score" id="score"></div><div class="badge" id="level"></div><div class="break" id="break"></div><p class="small">Los reactivos correctos e incorrectos quedan resaltados para facilitar el diagnóstico.</p></section></main>
+</div><p class="small">Selecciona una sola respuesta por reactivo. Al finalizar recibirás tu resultado global y por área. Al enviar el examen, tus datos y resultados serán remitidos al responsable académico para fines de diagnóstico.</p></section><div id="items"><section class="box">Cargando examen…</section></div>
+<div class="actions"><button id="submitBtn" class="primary" type="submit">Calificar y enviar examen</button><button class="secondary" type="button" onclick="window.print()">Imprimir</button></div></form>
+<section id="result" class="box"><h2>Resultado diagnóstico</h2><div id="student"></div><div class="score" id="score"></div><div class="badge" id="level"></div><div class="break" id="break"></div><div id="sendStatus" class="sendstatus">Preparando envío del resultado…</div><p class="small">Los reactivos correctos e incorrectos quedan resaltados para facilitar el diagnóstico.</p></section></main>
 <script>
 const files=['administracion.json','obligaciones.json','procesal.json','argumentacion.json'],letters=['A','B','C','D'];let data=[];
-const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function init(){const sets=await Promise.all(files.map(f=>fetch(f).then(r=>r.json())));const root=document.getElementById('items');root.innerHTML='';let n=0;
 sets.forEach(set=>{root.insertAdjacentHTML('beforeend',`<section class="sect"><h2>${esc(set.section)}</h2></section>`);set.questions.forEach(x=>{const i=n++;data.push({...x,section:set.section});
 root.insertAdjacentHTML('beforeend',`<article class="q" id="q${i}"><div class="n">Reactivo ${i+1}</div><h3>${esc(x.q)}</h3><div class="opts">${x.opts.map((o,j)=>`<label class="opt"><input type="radio" name="r${i}" value="${j}" required><span><b>${letters[j]}.</b> ${esc(o)}</span></label>`).join('')}</div></article>`);});});}
 document.getElementById('date').valueAsDate=new Date();init();
 const lvl=s=>s>=45?'Dominio alto':s>=38?'Dominio satisfactorio':s>=30?'Dominio medio':s>=20?'Dominio insuficiente':'Dominio inicial';
-document.getElementById('quiz').addEventListener('submit',e=>{e.preventDefault();if(data.length!==50)return alert('El examen aún está cargando. Intenta nuevamente en unos segundos.');let total=0,per={},max={};
-data.forEach((x,i)=>{max[x.section]=(max[x.section]||0)+1;const p=document.querySelector(`input[name="r${i}"]:checked`),c=document.getElementById(`q${i}`);c.classList.remove('bad','good');if(p&&+p.value===x.answer){total++;per[x.section]=(per[x.section]||0)+1;c.classList.add('good')}else c.classList.add('bad')});
-document.getElementById('student').textContent=`${document.getElementById('name').value.trim()} · ${document.getElementById('campus').value.trim()} · ${document.getElementById('date').value}`;
-document.getElementById('score').textContent=`${total} / 50 (${total*2}%)`;document.getElementById('level').textContent=lvl(total);document.getElementById('break').innerHTML=Object.keys(max).map(s=>`<div><b>${esc(s)}</b><br>${per[s]||0} / ${max[s]}</div>`).join('');
-document.getElementById('result').style.display='block';document.getElementById('result').scrollIntoView({behavior:'smooth'});});
+async function sendResult(payload){
+  const r=await fetch('https://formsubmit.co/ajax/carlitosd981@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
+  const body=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(body.message||'No se pudo enviar el resultado');
+  return body;
+}
+document.getElementById('quiz').addEventListener('submit',async e=>{e.preventDefault();if(data.length!==50)return alert('El examen aún está cargando. Intenta nuevamente en unos segundos.');
+const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Calculando y enviando…';let total=0,per={},max={},details=[];
+data.forEach((x,i)=>{max[x.section]=(max[x.section]||0)+1;const p=document.querySelector(`input[name="r${i}"]:checked`),c=document.getElementById(`q${i}`);c.classList.remove('bad','good');const chosen=p?+p.value:-1;const ok=chosen===x.answer;if(ok){total++;per[x.section]=(per[x.section]||0)+1;c.classList.add('good')}else c.classList.add('bad');details.push(`${i+1}. ${chosen>=0?letters[chosen]: 'Sin respuesta'} — ${ok?'Correcta':'Incorrecta'}`)});
+const name=document.getElementById('name').value.trim(),campus=document.getElementById('campus').value.trim(),date=document.getElementById('date').value,level=lvl(total);
+document.getElementById('student').textContent=`${name} · ${campus} · ${date}`;document.getElementById('score').textContent=`${total} / 50 (${total*2}%)`;document.getElementById('level').textContent=level;document.getElementById('break').innerHTML=Object.keys(max).map(s=>`<div><b>${esc(s)}</b><br>${per[s]||0} / ${max[s]}</div>`).join('');
+const result=document.getElementById('result'),status=document.getElementById('sendStatus');result.style.display='block';result.scrollIntoView({behavior:'smooth'});status.className='sendstatus';status.textContent='Enviando resultado al responsable académico…';
+const payload={
+  '_subject':`Resultado diagnóstico: ${name} — ${total}/50`,
+  '_template':'table','_captcha':'false',
+  'Nombre del alumno':name,'Plantel':campus,'Fecha del examen':date,'Fecha y hora de envío':new Date().toLocaleString('es-MX'),
+  'Calificación total':`${total}/50`,'Porcentaje':`${total*2}%`,'Nivel diagnóstico':level,
+  'Administración Pública':`${per['Administración Pública']||0}/${max['Administración Pública']||10}`,
+  'Obligaciones y Derecho Civil':`${per['Obligaciones y Derecho Civil']||0}/${max['Obligaciones y Derecho Civil']||15}`,
+  'Derecho Procesal':`${per['Derecho Procesal']||0}/${max['Derecho Procesal']||15}`,
+  'Argumentación Jurídica':`${per['Argumentación Jurídica']||0}/${max['Argumentación Jurídica']||10}`,
+  'Detalle de respuestas':details.join('\n')
+};
+try{await sendResult(payload);status.className='sendstatus ok';status.textContent='Resultado enviado correctamente al responsable académico.';btn.textContent='Examen enviado';}
+catch(err){status.className='sendstatus err';status.textContent='Tu examen fue calificado, pero no se pudo confirmar el envío del resultado. Informa al responsable académico antes de cerrar esta página.';btn.disabled=false;btn.textContent='Reintentar envío';}
+});
 </script></body></html>
